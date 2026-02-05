@@ -17,6 +17,15 @@ canvas{display:block;width:100%;height:100%;cursor:crosshair}
 #meter .fill{height:100%;transition:width 0.3s}
 .fillA{background:linear-gradient(90deg,#0af,#0ff);width:50%}
 .fillB{background:linear-gradient(90deg,#f0a,#f5f);width:50%}
+#phaseIndicator{position:fixed;top:16px;left:16px;z-index:10;display:flex;flex-direction:column;gap:6px;font-size:10px;color:rgba(255,255,255,0.4)}
+#phaseLabel{font-size:12px;letter-spacing:0.2em;font-weight:300;transition:color 0.5s}
+.phase-order{color:rgba(255,255,255,0.5)}
+.phase-schism{color:#f5a;text-shadow:0 0 8px rgba(255,80,170,0.3)}
+.phase-event{color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.6);animation:pulse 0.3s infinite alternate}
+.phase-rebuild{color:#8fa;text-shadow:0 0 8px rgba(140,255,170,0.3)}
+@keyframes pulse{from{opacity:0.7}to{opacity:1}}
+#energyBar{width:80px;height:3px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,0.08)}
+#energyFill{height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,#44f,#f44,#ff4);transition:width 0.2s}
 #title{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;text-align:center;z-index:20;pointer-events:none;opacity:1;transition:opacity 1.5s}
 #title h1{font-size:28px;font-weight:300;letter-spacing:0.15em;margin-bottom:8px}
 #title p{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:0.08em}
@@ -26,6 +35,10 @@ canvas{display:block;width:100%;height:100%;cursor:crosshair}
 <body>
 <div id="title"><h1>CONSENSUS COLLAPSE</h1><p>move your mouse to begin</p></div>
 <div id="info">Agent A: physicist &nbsp;&middot;&nbsp; Agent B: dreamer &nbsp;&middot;&nbsp; your input is the tiebreaker</div>
+<div id="phaseIndicator">
+  <span id="phaseLabel" class="phase-order">ORDER</span>
+  <div id="energyBar"><div id="energyFill"></div></div>
+</div>
 <div id="meter">
   <span>A</span><div class="bar"><div class="fill fillA" id="mA"></div></div>
   <div class="bar"><div class="fill fillB" id="mB"></div></div><span>B</span>

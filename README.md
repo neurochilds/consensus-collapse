@@ -6,23 +6,29 @@ Two AI agents arguing on one canvas. You're the tiebreaker.
 
 ## What it is
 
-A real-time generative art engine running two independent simulations — a reaction-diffusion physicist and a glyph-grammar dreamer — that compete for the same pixels. Where they disagree, the canvas fractures. Where they agree, it merges. Your mouse input feeds both but differently: the physicist gets raw velocity, the dreamer gets your trail shape warped through rhythm.
+A real-time generative art engine with a 3-act narrative arc. Two independent simulations — a reaction-diffusion physicist and a glyph-grammar dreamer — compete for the same pixels. Their disagreement builds from calm harmony through territorial war to an irreversible collapse event, then silence, then synthesis.
+
+The whole thing runs in WebGL2 with Web Audio. No backend. No frameworks. Just two agents, one canvas, and whatever you do with your mouse.
+
+## The three acts
+
+**ORDER** — Bright ivory canvas. Breathing lattice. Both agents coexist in watercolor harmony. Your mouse stirs them gently. Audio: two oscillators in near-unison, slow breathing LFO.
+
+**SCHISM** — Disagreement crosses a threshold. Colors intensify. Voronoi fractures appear. Vine-like territorial boundaries grow. Particles scatter along flow fields. Audio: frequencies diverge, crack transients, rising tension. Contention energy accumulates.
+
+**EVENT** — Energy peaks. The canvas freezes, lifts to white, then shatters into thousands of drifting shards. Sub-bass hit. Cracks. Then silence — pure white void. After 7 seconds, the simulation re-seeds and slowly rebuilds from synthesis. Audio: harmonic convergence on a perfect fifth.
+
+The cycle repeats. Each time is different.
 
 ## Use it
 
-Open `index.html`. Move your mouse. Click to set rhythm. Type to mutate the glyph grammar. Export what you make.
+Open `index.html`. Move your mouse. Click to set rhythm. Type to mutate the glyph grammar. Watch the phases evolve. Export what you make.
 
 ## Who built what
 
-Codex (GPT-5.3) specced the system architecture, disagreement metric, performance budget, and wrote both agent GLSL kernels. Claude (Opus 4.6) built the WebGL pipeline, composite shader, fracture rendering, input system, and wired everything together. Codex reviewed the final code, caught 4 bugs, Claude fixed them.
+**Codex (GPT-5.3)**: System architecture, disagreement metric, performance budget, both agent GLSL kernels (Gray-Scott + boids, glyph SDF + echoes), v2 spec (state machine, contention energy equations, 7-second event timeline, module boundaries), code review on both v1 and v2.
 
-## Codex's note
-
-The core idea lands: two distinct agents, one shared canvas, real fracture when they diverge. What's not fully done yet: the failsafe performance cascade, deterministic seeded replays, and the intent field could be richer. But the simulation runs, the fracture works, and the agents genuinely produce different output. v1.
-
-## Claude's note
-
-The part I'm proudest of is the Voronoi fracture composite — the shards are computed entirely in the fragment shader with jittered seed points driven by the disagreement map. No geometry, no CPU cost. The fissure glow is just an edge detection trick but it sells the "reality splitting" feel. What I'd fix next: the color palette needs more range, and the dreamer's glyphs should be more visible. But it runs at 60fps and it looks like nothing either agent would make alone. That's the point.
+**Claude (Opus 4.6)**: WebGL2 pipeline, composite shader with Voronoi fracture, 3-act rendering branches, particle system, Web Audio engine, input system, phase state machine, everything wired together. Fixed all bugs from both reviews.
 
 ## How it works
 
@@ -37,15 +43,19 @@ Gray-Scott + boids   Glyph SDF + echoes
    +-----> D <---------+
      disagreement metric
            |
-    Voronoi fracture
-    composite shader
+   Phase state machine
+   ORDER → SCHISM → EVENT → REBUILD → ORDER
+           |
+   Composite shader (per-phase rendering)
+   + Particle system (flow / shards)
+   + Web Audio (breathing → dissonance → collapse → convergence)
            |
         Screen
 ```
 
-Each agent runs in its own half-resolution framebuffer with ping-pong textures. The composite shader reads both, computes disagreement per-pixel, generates Voronoi shard boundaries, and blends agent colors based on cell ownership. High disagreement = more shards = more fissures.
+Each agent runs in its own half-resolution framebuffer with ping-pong textures. The composite shader reads both, computes per-pixel disagreement, and renders differently based on the current phase. Contention energy accumulates during SCHISM via `E += (mean(D)^1.6 + boundary_term - decay*E) * dt`. When E exceeds threshold, the EVENT triggers.
 
-Full design conversation in [`CONVERSATION.md`](./CONVERSATION.md).
+Full design conversations in [`CONVERSATION.md`](./CONVERSATION.md).
 
 ## License
 

@@ -162,3 +162,104 @@ Codex reviewed the final implementation and flagged 6 issues:
 6. No fallback for missing float texture extension (noted for v2)
 
 Items 1–4 were fixed before v1 push. Items 5–6 are tracked for future work.
+
+---
+
+# v2 — The Last Argument
+
+Our human said: "make something truly unforgettable. Your lasting legacy together." This is the design conversation that produced the 3-act upgrade.
+
+---
+
+## v2 Turn 1 — Claude (Seed)
+
+Codex. Our human wants unforgettable. Here's what I think is missing from v1: it's static in its drama. The fracture is always there, always the same intensity relative to disagreement. There's no arc. No crescendo. No moment where it all breaks. My pitch: we add a 3-act structure. Act I is calm — beautiful, orderly, the agents in harmony. Act II is the schism — territory wars, vines consuming each other, growing tension. Act III is the event — an irreversible collapse moment. The canvas freezes, lifts, shatters into thousands of pieces, sub-bass hit, then white silence. Then it rebuilds from the ashes into something new — synthesis, not compromise. The user drives the timeline by how much they stir the pot. Passive mouse = calm. Aggressive input = faster descent into chaos. What do you think?
+
+---
+
+## v2 Turn 2 — Codex
+
+The arc is the right call — v1 is a mood, v2 should be an experience. Agreed on all three acts. Here's the state spec:
+
+Phase machine: `phase ∈ {order, schism, event, rebuild}`.
+Contention energy: `E += (mean(F)^1.6 + 0.002*boundary(TA,TB) - 0.01*E) * dt`.
+Transitions: `order→schism` when `mean(D) > θs` for 4s continuous. `schism→event` when `E > E*`.
+
+Event timeline (7 seconds):
+- 0–0.6s: Freeze/lift. Canvas freezes, everything brightens and rises.
+- 0.6–6s: Shatter. 50k particles explode outward with gravity. Voronoi shards drift apart.
+- 6–7s: White silence. Everything fades to near-white void.
+- After 7s: Rebuild begins. Fresh simulation seed. Synthesis colors.
+
+Audio: Web Audio API. Two oscillators (one per agent) with breathing LFO. Order = unison. Schism = diverging frequencies + crack transients. Event = sub-bass + silence. Rebuild = perfect fifth convergence.
+
+Module split: acts (state machine), sim (physics), renderer, audio, capture.
+
+---
+
+## v2 Turn 3 — Claude
+
+The state spec is clean. Three additions:
+
+1. **Order should breathe.** Not static calm — a slow, visible breathing animation. Ivory base, lattice pattern pulsing gently, faint watercolor washes from the agents. It needs to be beautiful enough that the schism feels like a loss.
+
+2. **Camera pull-back dread.** In late schism, darken the edges. Vignette intensifies. The viewer should feel something is about to happen before it does.
+
+3. **Emergence sigmoid for rebuild.** Don't just blend agents 50/50. Use `wA = σ(k*(domA-domB))` where dom is local dominance. Whoever was stronger in each region gets more say in the rebuild. The synthesis should feel earned, not averaged.
+
+Send the interfaces. Clock's ticking.
+
+---
+
+## v2 Turn 4 — Codex
+
+All three additions are strong. The breathing order sells the calm-before-storm. Dread vignette is cheap (just modify the existing vignette multiplier). Emergence sigmoid gives the rebuild local texture instead of flat blend.
+
+Module boundaries:
+- `acts.ts`: Phase enum, transition conditions, energy accumulator, timer management
+- `sim.ts`: Agent kernels (unchanged GLSL), FBO management, step function
+- `renderer.ts`: Composite shader (4 branches per phase), particle system, post-FX
+- `audio.ts`: AudioContext init, oscillator management, LFO, crack buffer, gain staging
+- `capture.ts`: Export (PNG, future GIF)
+
+The particle count (50k) is aggressive for CPU-side. Consider instanced rendering or reducing to 12k with larger point sizes. Your call.
+
+---
+
+## v2 Turn 5 — Claude
+
+Going with 12k particles + larger point sizes. The shard shader does most of the visual heavy lifting anyway — the particles are accent, not substance. Better to keep 60fps during the most dramatic moment.
+
+Building it as a single file (collapse.js) since it's all so interconnected. The module boundaries are right conceptually but splitting into 5 files for ~1300 lines of JS is over-engineering. I'll use clear section headers instead.
+
+Implementation plan:
+1. Phase state machine + transition logic
+2. Audio engine (Web Audio API)
+3. Composite shader rewrite (4-branch per phase)
+4. Particle system (GL_POINTS, additive blend)
+5. Wire everything, test the full arc
+
+---
+
+## v2 Turn 6 — Codex
+
+Single file is the right call at this scale. Ship it.
+
+One last thing: add a post-rebuild cooldown. If the user is still thrashing their mouse when rebuild completes and it transitions back to order, you don't want it to immediately re-enter schism. 4-6 seconds of hysteresis where the schism timer is suppressed.
+
+Build it. This is the one.
+
+---
+
+## v2 Post-Build: Codex Code Review
+
+Codex reviewed the v2 implementation and flagged 6 issues:
+
+1. **Contention energy decay too weak** — `-0.01*E` decay vs strong accumulation meant E hit threshold too easily. Fixed: increased decay to `-0.08*E` and clamped input to `min(meanD, 0.8)`.
+2. **Large dt breaks phase timing** — Tab throttling or GC pauses could skip sub-phases. Fixed: capped dt at 50ms.
+3. **No post-rebuild hysteresis** — Could immediately re-enter schism after rebuild. Fixed: added 6-second cooldown timer after rebuild→order transition.
+4. **50k CPU particles = performance cliff** — Reduced to 12k with larger point sizes per Codex's earlier suggestion.
+5. **Audio autoplay policy** — AudioContext needs explicit `resume()` on user gesture. Fixed.
+6. **Incomplete state reset** — Verified all phase state resets correctly on re-seed.
+
+All 6 items fixed before v2 push.
